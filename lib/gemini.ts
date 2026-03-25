@@ -26,20 +26,26 @@ export async function generateSql(query: string) {
     - SalesOrderItems (salesOrder, salesOrderItem, material, orderQuantity)
     - DeliveryHeaders (deliveryDocument, shippingPoint, deliveryDate)
     - DeliveryItems (deliveryDocument, deliveryItem, material, actualDeliveryQuantity, referenceSdDocument)
-    - BillingHeaders (billingDocument, billingDocumentType, billingDate, totalNetAmount)
+    - BillingHeaders (billingDocument, billingDocumentType, billingDate, totalNetAmount) -- This is effectively the INVOICE
     - BillingItems (billingDocument, billingDocumentItem, material, referenceSdDocument)
-    - JournalEntries (accountingDocument, fiscalYear, companyCode, referenceDocument)
+    - JournalEntries (accountingDocument, fiscalYear, companyCode, referenceDocument) -- Accounting/Financial postings
 
     Relationships:
     - DeliveryItems.referenceSdDocument = SalesOrderHeaders.salesOrder
     - BillingItems.referenceSdDocument = DeliveryHeaders.deliveryDocument
     - JournalEntries.referenceDocument = BillingHeaders.billingDocument
 
+    Term Mapping:
+    - "Invoice" = Billing Document
+    - "Unpaid" = Billing Document without a corresponding JournalEntry record (or any logic you deem fit for this schema)
+    - "Customer" = Business Partner (soldToParty)
+
     Task:
     Translate the user's natural language question into a SQLite SQL query.
     - Only return the SQL query, nothing else.
-    - If the question is NOT about O2C data, return "GUARDRAIL_REJECT".
-    - Use JOINs to trace the flow (e.g., SO -> Delivery -> Billing).
+    - If the question is about Sales, Orders, Deliveries, Invoices (Billing), or Accounting (Journal Entries), it is VALID.
+    - Only return "GUARDRAIL_REJECT" if the question is completely outside the O2C domain (e.g. weather, generic chat, unrelated topics).
+    - Use JOINs to trace the flow.
 
     Question: "${query}"
   `;
