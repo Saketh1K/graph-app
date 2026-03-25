@@ -37,7 +37,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Summarize results
-    const answer = await summarizeResults(query, results);
+    let answer = '';
+    if (results.length === 0) {
+      answer = "I couldn't find any data matching your request in the SAP system. Please try a different query or document number.";
+    } else {
+      answer = await summarizeResults(query, results);
+    }
 
     return NextResponse.json({
       answer,
