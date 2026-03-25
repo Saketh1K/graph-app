@@ -4,6 +4,9 @@ import path from 'path';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+// In-memory cache to prevent 429 errors for repetitive queries
+const queryCache = new Map<string, { answer: string; sql: string | null; results: Record<string, unknown>[] }>();
+
 let client: Client | null = null;
 
 export function getDb() {
@@ -14,6 +17,14 @@ export function getDb() {
     });
   }
   return client;
+}
+
+export function getCachedResponse(query: string) {
+  return queryCache.get(query.toLowerCase().trim());
+}
+
+export function setCachedResponse(query: string, response: { answer: string; sql: string | null; results: Record<string, unknown>[] }) {
+  queryCache.set(query.toLowerCase().trim(), response);
 }
 
 export async function generateSql(query: string) {

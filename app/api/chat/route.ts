@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateSql, getDb, summarizeResults } from '@/lib/gemini';
+import { generateSql, getDb, summarizeResults, getCachedResponse, setCachedResponse } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,15 +9,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
+    // --- CHECK CACHE ---
+    const cached = getCachedResponse(query);
+    if (cached) {
+      console.log('Serving from cache:', query);
+      return NextResponse.json(cached);
+    }
+
     // 1. Generate SQL
     const sql = await generateSql(query);
     console.log('Generated SQL:', sql);
 
     if (sql.includes('GUARDRAIL_REJECT')) {
-      return NextResponse.json({
+      const response = {
         answer: "I'm sorry, I can only help with questions related to the SAP Order-to-Cash dataset (Orders, Deliveries, Billing, etc.). How can I help you explore the business data today?",
-        sql: null
-      });
+        sql: null,
+        results: []
+      };
+      setCachedResponse(query, response);
+      return NextResponse.json(response);
     }
 
     // 2. Execute SQL
@@ -44,13 +54,18 @@ export async function POST(req: NextRequest) {
       answer = await summarizeResults(query, results);
     }
 
-    return NextResponse.json({
+    const finalResponse = {
       answer,
       sql,
       results
-    });
-  } catch (error: any) {
-    if (error.status === 429) {
+    };
+
+    // --- SAVE TO CACHE ---
+    setCachedResponse(query, finalResponse);
+
+    return NextResponse.json(finalResponse);
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'status' in error && error.status === 429) {
       return NextResponse.json({ 
         answer: "The AI is currently receiving too many requests. Please wait a moment (about 60 seconds) and try again.",
         error: "Rate limit exceeded" 
