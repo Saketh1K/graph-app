@@ -21,10 +21,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Execute SQL
-    const db = await getDb();
-    let results: Record<string, string | number | null>[] = [];
+    const client = getDb();
+    let results: Record<string, unknown>[] = [];
     try {
-      results = await db.all(sql);
+      const rs = await client.execute(sql);
+      results = rs.rows as unknown as Record<string, unknown>[];
     } catch (dbError: unknown) {
       const message = dbError instanceof Error ? dbError.message : 'Unknown database error';
       console.error('SQL Execution Error:', dbError);

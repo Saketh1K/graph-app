@@ -1,16 +1,14 @@
 import fs from 'fs';
 import path from 'path';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { createClient, Client, InStatement } from '@libsql/client';
 import readline from 'readline';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = path.join(process.cwd(), 'data/graph.db');
 
 async function ingest() {
-  const db = await open({
-    filename: DB_PATH,
-    driver: sqlite3.Database
+  const client = createClient({
+    url: `file:${DB_PATH}`,
   });
 
   console.log('Opened database at', DB_PATH);
@@ -46,16 +44,16 @@ async function ingest() {
     if (!firstLine) continue;
 
     const columns = Object.keys(JSON.parse(firstLine));
-    await createTable(db, entity.table, columns);
+    await createTable(client, entity.table, columns);
 
     for (const file of files) {
       const filePath = path.join(dirPath, file);
-      await insertFromFile(db, entity.table, filePath, columns);
+      await insertFromFile(client, entity.table, filePath, columns);
     }
   }
 
   console.log('Ingestion complete!');
-  await db.close();
+  client.close();
 }
 
 async function getFirstLine(filePath: string): Promise<string | null> {
@@ -68,32 +66,40 @@ async function getFirstLine(filePath: string): Promise<string | null> {
   return null;
 }
 
-async function createTable(db: any, tableName: string, columns: string[]) {
+async function createTable(client: Client, tableName: string, columns: string[]) {
   const colDefs = columns.map(c => `"${c}" TEXT`).join(', ');
-  await db.exec(`DROP TABLE IF EXISTS ${tableName}`);
-  await db.exec(`CREATE TABLE ${tableName} (${colDefs})`);
+  await client.execute(`DROP TABLE IF EXISTS ${tableName}`);
+  await client.execute(`CREATE TABLE ${tableName} (${colDefs})`);
 }
 
-async function insertFromFile(db: any, tableName: string, filePath: string, columns: string[]) {
+async function insertFromFile(client: Client, tableName: string, filePath: string, columns: string[]) {
   const fileStream = fs.createReadStream(filePath);
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
   
   const placeholders = columns.map(() => '?').join(', ');
   const sql = `INSERT INTO ${tableName} (${columns.map(c => `"${c}"`).join(', ')}) VALUES (${placeholders})`;
   
-  const stmt = await db.prepare(sql);
+  const batch: InStatement[] = [];
+  const BATCH_SIZE = 100;
 
   for await (const line of rl) {
     try {
       const data = JSON.parse(line);
       const values = columns.map(c => data[c] !== undefined ? String(data[c]) : null);
-      await stmt.run(values);
+      batch.push({ sql, args: values });
+
+      if (batch.length >= BATCH_SIZE) {
+        await client.batch(batch, "write");
+        batch.length = 0;
+      }
     } catch (e) {
       console.error(`Error parsing line in ${filePath}:`, e);
     }
   }
 
-  await stmt.finalize();
+  if (batch.length > 0) {
+    await client.batch(batch, "write");
+  }
 }
 
 ingest().catch(console.error);
