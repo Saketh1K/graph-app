@@ -75,10 +75,13 @@ export async function generateSql(query: string) {
 export async function summarizeResults(query: string, results: Record<string, unknown>[]) {
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+  // Limit to 20 results to avoid token limits (RPM/TPM)
+  const truncatedResults = results.slice(0, 20);
+
   const prompt = `
     You are an assistant reporting data from an SAP system.
     User Question: "${query}"
-    Data Results: ${JSON.stringify(results)}
+    Data Results: ${JSON.stringify(truncatedResults)}
 
     Task:
     - Provide a concise, professional summary of the data.
