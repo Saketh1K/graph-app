@@ -51,7 +51,9 @@ export async function POST(req: NextRequest) {
     if (results.length === 0) {
       answer = "I couldn't find any data matching your request in the SAP system. Please try a different query or document number.";
     } else {
-      answer = await summarizeResults(query, results);
+      // TRUNCATE for summarization to avoid token limits
+      const summaryData = results.slice(0, 20);
+      answer = await summarizeResults(query, summaryData);
     }
 
     const finalResponse = {
