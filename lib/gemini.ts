@@ -28,7 +28,7 @@ export function setCachedResponse(query: string, response: { answer: string; sql
 }
 
 export async function generateSql(query: string) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `
     You are an expert SQL assistant for an SAP Order-to-Cash system.
@@ -73,7 +73,7 @@ export async function generateSql(query: string) {
 }
 
 export async function summarizeResults(query: string, results: Record<string, unknown>[]) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   // Limit to 20 results to avoid token limits (RPM/TPM)
   const truncatedResults = results.slice(0, 20);
