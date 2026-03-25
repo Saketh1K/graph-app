@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SAP O2C Graph Explorer 🚀
 
-## Getting Started
+A high-performance, AI-powered graph visualization and query system for SAP Order-to-Cash (O2C) datasets.
 
-First, run the development server:
+![Dashboard Preview](https://github.com/Saketh1K/graph-app/raw/main/public/preview.png)
 
+## ✨ Features
+
+- **Force-Directed Graph**: Real-time visualization of Sales Orders, Deliveries, Billing, and Journal Entries.
+- **AI Conversational Interface**: Ask questions in natural language (powered by Gemini 1.5 Flash).
+- **Automated SQL Generation**: Dynamic translation of natural language to specialized SQL for graph-relational queries.
+- **End-to-End Traceability**: Full visibility from Order creation to Financial Posting.
+- **Premium Design**: Modern, glassmorphic UI built with Next.js and Tailwind CSS.
+
+## 🛠 Tech Stack
+
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router, TypeScript)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Visuals**: [react-force-graph-2d](https://github.com/vasturiano/react-force-graph-2d)
+- **Database**: [SQLite](https://www.sqlite.org/)
+- **AI Engine**: [Google Gemini 1.5 Flash](https://aistudio.google.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Saketh1K/graph-app.git
+cd graph-app
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Set Environment Variables
+Create a `.env.local` file in the root directory:
+```env
+GEMINI_API_KEY=your_api_key_here
+```
+
+### 4. Run the development server
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📊 Data Model
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The system unifies fragmented SAP JSONL files into a cohesive SQLite database with the following entity relationships:
+- **SalesOrder** → linked to → **Delivery**
+- **Delivery** → linked to → **Billing**
+- **Billing** → linked to → **JournalEntry**
 
-## Learn More
+## ☁️ Deployment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed with ❤️ on [Vercel](https://vercel.com).
