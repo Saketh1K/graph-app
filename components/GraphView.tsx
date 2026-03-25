@@ -111,7 +111,6 @@ export default function GraphView() {
           const label = n.label;
           const fontSize = 12 / globalScale;
           ctx.font = `${fontSize}px Inter`;
-          const textWidth = ctx.measureText(label).width;
 
           ctx.fillStyle = n.color;
           ctx.beginPath();

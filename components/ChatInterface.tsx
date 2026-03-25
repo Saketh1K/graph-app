@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Database } from 'lucide-react';
+import { Send, Bot, Loader2, Database } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,8 +12,8 @@ function cn(...inputs: ClassValue[]) {
 interface Message {
   role: 'user' | 'ai';
   content: string;
-  sql?: string;
-  results?: any[];
+  sql?: string | null;
+  results?: Record<string, string | number | null>[] | null;
 }
 
 export default function ChatInterface() {
