@@ -46,7 +46,13 @@ export async function generateSql(query: string) {
 
   const result = await model.generateContent(prompt);
   const response = result.response;
-  return response.text().trim().replace(/```sql|```/g, '');
+  let sql = response.text().trim();
+  
+  // Robust cleaning: remove markdown blocks and language identifiers
+  sql = sql.replace(/```sql|```sqlite|```/gi, '');
+  sql = sql.replace(/^sqlite|^sql|^ite/gi, '').trim();
+  
+  return sql;
 }
 
 export async function summarizeResults(query: string, results: Record<string, unknown>[]) {
