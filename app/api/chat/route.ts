@@ -44,7 +44,13 @@ export async function POST(req: NextRequest) {
       sql,
       results
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
+    if (error.status === 429) {
+      return NextResponse.json({ 
+        answer: "The AI is currently receiving too many requests. Please wait a moment (about 60 seconds) and try again.",
+        error: "Rate limit exceeded" 
+      }, { status: 429 });
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Chat API Error:', error);
     return NextResponse.json({ error: message }, { status: 500 });
